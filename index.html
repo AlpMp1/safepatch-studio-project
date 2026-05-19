@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SafePatch Studio | AI Dependency Risk & Remediation Workspace</title>
+<style>
+:root{
+  --bg:#061116;
+  --panel:#0d1b22;
+  --panel2:#10252d;
+  --text:#f2fff9;
+  --muted:#9bb8b0;
+  --line:rgba(255,255,255,.11);
+  --green:#7cf5b0;
+  --mint:#6ef3d6;
+  --blue:#7db7ff;
+  --yellow:#f9d66b;
+  --red:#ffa3a3;
+  --purple:#bca7ff;
+  --shadow:0 30px 90px rgba(0,0,0,.38);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 10% -8%,rgba(110,243,214,.20),transparent 28rem),
+    radial-gradient(circle at 92% 0%,rgba(125,183,255,.16),transparent 25rem),
+    radial-gradient(circle at 50% 100%,rgba(124,245,176,.10),transparent 30rem),
+    linear-gradient(180deg,#061116,#071921 48%,#051015);
+}
+a{color:inherit;text-decoration:none}
+.wrap{width:min(1180px,calc(100% - 36px));margin:0 auto}
+.top{
+  position:sticky;top:0;z-index:20;
+  background:rgba(6,17,22,.78);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(18px);
+}
+.nav{height:74px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:13px;font-weight:900;letter-spacing:-.02em}
+.logo{
+  width:43px;height:43px;border-radius:16px;
+  background:linear-gradient(135deg,var(--green),var(--mint),var(--blue));
+  box-shadow:0 16px 46px rgba(110,243,214,.28);
+  position:relative;
+}
+.logo:before{
+  content:"";
+  position:absolute;left:12px;right:12px;top:9px;height:13px;
+  border:3px solid #061116;border-bottom:0;border-radius:12px 12px 0 0;
+}
+.logo:after{
+  content:"";
+  position:absolute;left:10px;right:10px;bottom:9px;height:20px;
+  border-radius:7px;background:#061116;
+}
+.brand small{display:block;color:#91aca5;font-size:12px;font-weight:600;margin-top:2px}
+.links{display:flex;gap:22px;color:#bdd2cc;font-size:14px}
+.links a:hover{color:white}
+.hero{padding:92px 0 58px}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:42px;align-items:center}
+.kicker{
+  display:inline-flex;gap:9px;align-items:center;
+  padding:8px 12px;border-radius:999px;
+  background:rgba(124,245,176,.10);
+  border:1px solid rgba(124,245,176,.24);
+  color:#dcffe9;font-size:13px;font-weight:900;
+}
+.pulse{width:8px;height:8px;border-radius:999px;background:var(--green);box-shadow:0 0 0 8px rgba(124,245,176,.12)}
+h1{
+  font-size:clamp(45px,7vw,84px);
+  line-height:.9;letter-spacing:-.078em;
+  margin:18px 0 20px;
+}
+.grad{
+  background:linear-gradient(90deg,#fff 5%,#9dffd1 34%,#9eeaff 60%,#cabdff 92%);
+  -webkit-background-clip:text;color:transparent;
+}
+.lead{font-size:18px;line-height:1.85;color:#bfd4ce;max-width:730px}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:13px 18px;border-radius:999px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.13);
+  font-weight:850;
+}
+.btn.primary{border:0;background:linear-gradient(135deg,var(--green),var(--mint));color:#061116}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:32px}
+.metric{
+  background:rgba(255,255,255,.055);
+  border:1px solid var(--line);
+  border-radius:22px;padding:18px;
+}
+.metric strong{display:block;font-size:30px;letter-spacing:-.04em}
+.metric span{font-size:13px;color:var(--muted)}
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.045));
+  border:1px solid var(--line);
+  border-radius:28px;
+  box-shadow:var(--shadow);
+}
+.console{overflow:hidden}
+.console-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 20px;border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.04)
+}
+.dots{display:flex;gap:8px}
+.dot{width:10px;height:10px;border-radius:999px}
+.dot:nth-child(1){background:#ff7b7b}
+.dot:nth-child(2){background:#ffd166}
+.dot:nth-child(3){background:#86efac}
+.console-body{padding:22px}
+.badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 10px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  font-size:12px;font-weight:900;
+}
+.critical{background:rgba(255,163,163,.11);color:#ffd1d1}
+.ok{background:rgba(124,245,176,.11);color:#d9ffe8}
+.code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  background:#061015;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  padding:16px;
+  color:#d9ece6;
+  font-size:12.5px;
+  line-height:1.72;
+  overflow:auto;
+  white-space:pre-wrap;
+}
+.section{padding:46px 0}
+.section h2{font-size:44px;letter-spacing:-.055em;margin:0 0 10px}
+.section>p{color:#b8ccc6;line-height:1.82;max-width:920px}
+.capabilities{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:28px}
+.feature{padding:22px}
+.icon{
+  width:48px;height:48px;border-radius:16px;
+  display:grid;place-items:center;font-size:22px;
+  background:linear-gradient(135deg,rgba(124,245,176,.17),rgba(110,243,214,.14),rgba(125,183,255,.16));
+  border:1px solid rgba(255,255,255,.08)
+}
+.feature h3{font-size:19px;margin:15px 0 10px}
+.feature p{color:#a9c0ba;line-height:1.72;margin:0}
+.workspace{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px}
+.panel{padding:22px}
+.panel h3{font-size:22px;margin:0 0 16px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.info{
+  padding:14px;border-radius:16px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.07);
+}
+.info strong{display:block;margin-bottom:4px}
+.info span{color:#9fb6b0;font-size:13px}
+.agent-list{display:grid;gap:12px}
+.agent{
+  display:grid;grid-template-columns:54px 1fr;gap:14px;
+  padding:15px;border-radius:20px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.07)
+}
+.num{
+  width:48px;height:48px;border-radius:16px;display:grid;place-items:center;
+  background:linear-gradient(135deg,rgba(124,245,176,.17),rgba(125,183,255,.15));
+  font-weight:900;
+}
+.agent small{color:var(--mint);font-weight:900;letter-spacing:.08em}
+.agent h4{margin:5px 0 6px}
+.agent p{margin:0;color:#a9c0ba;line-height:1.6}
+.diff .minus{color:var(--red)}
+.diff .plus{color:var(--green)}
+.diff .note{color:#a8beb8}
+.table{display:grid;gap:10px;margin-top:18px}
+.row{
+  display:grid;grid-template-columns:1.05fr .6fr .9fr;gap:10px;
+  padding:13px;border-radius:16px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.07);
+  color:#d7e9e4;font-size:14px;
+}
+.row.head{
+  color:#92aaa3;font-weight:850;font-size:12px;text-transform:uppercase;letter-spacing:.08em
+}
+.pill{
+  display:inline-flex;justify-content:center;align-items:center;
+  padding:5px 9px;border-radius:999px;
+  background:rgba(124,245,176,.12);
+  border:1px solid rgba(124,245,176,.18);
+  color:#d8ffe7;font-size:12px;font-weight:850;
+}
+.timeline-note{
+  margin-top:18px;padding:16px;border-radius:18px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.07);
+  color:#abc2bc;line-height:1.72;
+}
+.roadmap{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px}
+.road{padding:22px}
+.road small{color:var(--mint);font-weight:900}
+.road h3{margin:8px 0}
+.road p{color:#a9c0ba;line-height:1.72;margin:0}
+.footer{padding:62px 0;color:#8ea9a1;text-align:center}
+@media(max-width:980px){
+  .hero-grid,.workspace,.capabilities,.roadmap{grid-template-columns:1fr}
+  .metrics,.grid2{grid-template-columns:1fr}
+  .links{display:none}
+  h1{font-size:52px}
+  .section h2{font-size:34px}
+  .row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <nav class="wrap nav">
+    <a class="brand" href="#">
+      <span class="logo"></span>
+      <span>SafePatch Studio<small>AI Dependency Risk & Remediation Workspace</small></span>
+    </a>
+    <div class="links">
+      <a href="#capabilities">Capabilities</a>
+      <a href="#workspace">Workspace</a>
+      <a href="#patch">Patch</a>
+      <a href="#roadmap">Roadmap</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <section class="hero wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="kicker"><span class="pulse"></span>Multi-agent dependency remediation for real repositories</div>
+        <h1>Patch risky dependencies without <span class="grad">breaking production</span>.</h1>
+        <p class="lead">
+          SafePatch Studio 是一个面向开源项目与中小团队的 AI 依赖风险分析与安全修复工作台。
+          它会读取 lockfile、SBOM、依赖公告、源码调用链、测试日志与历史升级记录，判断漏洞是否真实可达，
+          生成兼容升级方案、修复 patch、回归测试与发布风险报告。
+        </p>
+        <div class="actions">
+          <a class="btn primary" href="#workspace">Open Remediation Workspace</a>
+          <a class="btn" href="#patch">View Patch Report</a>
+        </div>
+        <div class="metrics">
+          <div class="metric"><strong>27</strong><span>依赖风险项已聚类</span></div>
+          <div class="metric"><strong>5</strong><span>真实可达高风险路径</span></div>
+          <div class="metric"><strong>8 agents</strong><span>分析、升级、测试、审查协作</span></div>
+        </div>
+      </div>
+
+      <div class="card console">
+        <div class="console-head">
+          <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span style="color:#91aaa3;font-family:monospace">remediation_run_0914</span>
+        </div>
+        <div class="console-body">
+          <span class="badge critical">REACHABLE RISK DETECTED</span>
+          <h3 style="font-size:24px;margin:14px 0 12px">Transitive parser package affects invoice upload route</h3>
+          <div class="code">Repository: billing-portal-next
+Branch: chore/update-dependencies
+
+Loaded context:
+- pnpm-lock.yaml, package.json, Dockerfile
+- 4 advisory summaries
+- 128 source files
+- 21 unit/integration test logs
+- 6 historical dependency upgrade commits
+
+Reachability Agent result:
+route /api/invoices/upload -> parseInvoiceMeta()
+-> xmlToJson() -> vulnerable transitive parser
+
+Suggested remediation:
+upgrade parser family + normalize XML options + add regression fixture</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section wrap" id="capabilities">
+    <h2>Not every advisory is equally urgent.</h2>
+    <p>
+      SafePatch 的核心不是简单列出漏洞清单，而是结合项目真实源码、依赖调用链、测试覆盖和运行路径，
+      判断风险是否可达、升级是否会破坏兼容性，并输出工程团队可以直接执行的修复计划。
+    </p>
+    <div class="capabilities">
+      <article class="card feature">
+        <div class="icon">🧭</div>
+        <h3>Reachability Analysis</h3>
+        <p>从路由、service、utils 与测试路径中分析依赖是否被真实调用，减少无效告警。</p>
+      </article>
+      <article class="card feature">
+        <div class="icon">🧱</div>
+        <h3>Compatibility Planning</h3>
+        <p>对比 semver、breaking changes、lockfile 和历史升级记录，生成安全升级策略。</p>
+      </article>
+      <article class="card feature">
+        <div class="icon">🧪</div>
+        <h3>Regression Fixtures</h3>
+        <p>针对受影响入口补充最小复现 fixture、单元测试和集成测试。</p>
+      </article>
+      <article class="card feature">
+        <div class="icon">📋</div>
+        <h3>Release Report</h3>
+        <p>输出风险分级、受影响模块、验证结果和灰度发布建议，便于 PR 审查。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section wrap" id="workspace">
+    <h2>Remediation workspace demo.</h2>
+    <p>
+      下面展示一次依赖风险修复流程。Agent 先判断漏洞依赖是否在真实业务路径中可达，再生成升级方案、代码兼容层和测试。
+    </p>
+    <div class="workspace">
+      <section class="card panel">
+        <h3>Risk Snapshot</h3>
+        <div class="grid2">
+          <div class="info"><strong>Repository</strong><span>billing-portal-next</span></div>
+          <div class="info"><strong>Package Family</strong><span>xml-parser / invoice import</span></div>
+          <div class="info"><strong>Risk Surface</strong><span>/api/invoices/upload</span></div>
+          <div class="info"><strong>Remediation Type</strong><span>upgrade + compatibility patch</span></div>
+        </div>
+        <div class="code" style="margin-top:16px">Reachability Map:
+user upload -> route handler -> parseInvoiceMeta()
+-> sanitizeXml() -> xmlToJson()
+-> transitive parser package
+
+Compatibility Notes:
+• parser v5 changes default namespace handling
+• invoice metadata fixtures rely on legacy empty node behavior
+• upload route needs explicit parse options
+• dashboard export tests must be replayed</div>
+        <div class="timeline-note">
+          这个 demo 只展示防御性修复与兼容升级，不包含漏洞利用步骤或攻击代码。
+        </div>
+      </section>
+
+      <section class="card panel">
+        <h3>Agent Timeline</h3>
+        <div class="agent-list">
+          <div class="agent">
+            <div class="num">01</div>
+            <div><small>ADVISORY AGENT</small><h4>Normalize advisory context</h4><p>整理公告、影响版本、依赖路径和升级候选版本。</p></div>
+          </div>
+          <div class="agent">
+            <div class="num">02</div>
+            <div><small>REACHABILITY AGENT</small><h4>Trace real code paths</h4><p>从路由、service、测试和调用链判断风险是否真实可达。</p></div>
+          </div>
+          <div class="agent">
+            <div class="num">03</div>
+            <div><small>REMEDIATION AGENT</small><h4>Generate safe upgrade patch</h4><p>升级依赖、添加兼容配置、补充回归测试和 fixture。</p></div>
+          </div>
+          <div class="agent">
+            <div class="num">04</div>
+            <div><small>RELEASE REVIEW AGENT</small><h4>Validate and prepare rollout</h4><p>复测上传路径、导出路径和账单解析任务，生成发布建议。</p></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="section wrap" id="patch">
+    <h2>Patch and validation report.</h2>
+    <p>
+      SafePatch 输出的重点是可审查的工程结果：依赖升级、兼容层、测试 fixture、风险说明和发布门禁。
+    </p>
+    <div class="workspace">
+      <section class="card panel">
+        <h3>Generated Remediation Patch</h3>
+        <div class="code diff"><span class="minus">- const parsed = xmlToJson(rawXml)</span>
+
+<span class="plus">+ const parsed = xmlToJson(rawXml, {</span>
+<span class="plus">+   preserveNamespaces: true,</span>
+<span class="plus">+   normalizeEmptyNodes: true,</span>
+<span class="plus">+   maxDepth: 24</span>
+<span class="plus">+ })</span>
+
+<span class="plus">+ it('parses invoice metadata with namespace fallback', async () => {</span>
+<span class="plus">+   const invoice = await parseInvoiceFixture('namespace-edge.xml')</span>
+<span class="plus">+   expect(invoice.vendorId).toBe('vendor_018')</span>
+<span class="plus">+ })</span></div>
+      </section>
+
+      <section class="card panel">
+        <h3>Validation Matrix</h3>
+        <div class="table">
+          <div class="row head"><span>Check</span><span>Status</span><span>Notes</span></div>
+          <div class="row"><span>Lockfile upgrade</span><span><span class="pill">PASS</span></span><span>parser family pinned to safe range</span></div>
+          <div class="row"><span>Invoice upload tests</span><span><span class="pill">PASS</span></span><span>14 fixtures replayed</span></div>
+          <div class="row"><span>Export regression</span><span><span class="pill">PASS</span></span><span>CSV/PDF export unchanged</span></div>
+          <div class="row"><span>Release risk</span><span><span class="pill">MEDIUM</span></span><span>roll out behind parser flag</span></div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="section wrap" id="roadmap">
+    <h2>Evaluation roadmap.</h2>
+    <p>
+      后续计划用多个真实开源仓库验证依赖升级、传递依赖修复、lockfile 合并、兼容测试和发布风险评估能力。
+    </p>
+    <div class="roadmap">
+      <article class="card road">
+        <small>Phase 01</small>
+        <h3>Dependency Reachability</h3>
+        <p>结合源码调用链与测试路径区分真实可达风险和低优先级告警。</p>
+      </article>
+      <article class="card road">
+        <small>Phase 02</small>
+        <h3>Safe Upgrade Patches</h3>
+        <p>自动生成 lockfile 升级、兼容配置、最小代码改动与测试 fixture。</p>
+      </article>
+      <article class="card road">
+        <small>Phase 03</small>
+        <h3>Release Gate Reports</h3>
+        <p>输出可用于 PR 的验证矩阵、灰度建议、回滚方案和后续追踪项。</p>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer class="footer wrap">
+  SafePatch Studio · AI Dependency Risk & Remediation Workspace
+</footer>
+</body>
+</html>
